@@ -10,7 +10,7 @@ x_control = moving
 y_control = 0
 real_score = 0
 list_snake = []
-complimento_inicial = 4
+complimento_inicial = 2
 died = False
 #---------------------------------------------------- colors ----------------------------------------------------------#
 
@@ -65,15 +65,13 @@ def size_snake():
 
 #---------------------------------------------- definindo funções -------------------------------------------------------#
 
-def restart_game():
-    global pontos,complimento_inicial,x_snake,y_snake,lista_cabeca,list_snake,x_apple,y_apple,died
-    pontos = 0
-    complimento_inicial = 2
-    snake_on_grid()
-    lista_cabeca = []
-    list_snake = []
+def grip():
+    global x_apple, y_apple, complimento_inicial, real_score, speed
+    
     random_apple_position()
-    died = False
+    complimento_inicial += 1
+    real_score += 1
+    speed = speed + 0.8
 
 def best_best_hiscore():
     global new_real_score, real_score
@@ -81,12 +79,24 @@ def best_best_hiscore():
     if real_score > new_real_score:
         new_real_score = real_score
 
+def restart_game():
+    global pontos,complimento_inicial,x_snake,y_snake,lista_cabeca,list_snake,x_apple,y_apple,died, real_score, speed
+    best_best_hiscore()
+    real_score = 0
+    speed = 8
+    complimento_inicial = 2
+    snake_on_grid()
+    lista_cabeca = []
+    list_snake = []
+    random_apple_position()
+    died = False
+     
 def game_over():
-    global game_over_font, gameover, speed, new_real_score, text_game_over, rect_text, event, died, real_score
+    global game_over_font, gameover, new_real_score, text_game_over, rect_text, event, died
 
     game_over_font = pygame.font.SysFont('Pixelade', 48, True, False)
     gameover = 'GAME OVER'
-    text_game_over = game_over_font.render(gameover, False, YELLOW)
+    text_game_over = game_over_font.render(gameover, False, BLUE)
     rect_text =  text_game_over.get_rect()
     
     restart_font = pygame.font.SysFont('Pixelade', 28, True, False)
@@ -104,9 +114,6 @@ def game_over():
                 exit()
             if event.type == KEYDOWN:
                 if event.key == K_r:
-                    best_best_hiscore()
-                    real_score = 0
-                    speed = 8
                     restart_game()
         rect_text.center = (width // 2, (height // 2)-20)
         rect_text2.center = (width // 2, (height // 2)+10)
@@ -114,33 +121,35 @@ def game_over():
         tela.blit(text_restart,rect_text2)
         pygame.display.update()
 
-def control_movement():
+def on_button_pressed():
     global x_control, y_control
     if event.type == KEYDOWN:
-        if event.key == K_a:
+        if event.key == K_a or event.key == K_LEFT:
             if x_control == moving:
                 pass
             else:
                 x_control = -moving
                 y_control = 0
-        if event.key == K_d:
+        if event.key == K_d or event.key == K_RIGHT:
             if x_control == -moving:
                 pass
             else:
                 x_control = moving
                 y_control = 0
-        if event.key == K_s:
+        if event.key == K_s or event.key == K_DOWN:
             if y_control == -moving:
                 pass
             else:
                 x_control = 0
                 y_control = moving
-        if event.key == K_w:
+        if event.key == K_w or event.key == K_UP:
             if y_control == moving:
                 pass
             else:
                 x_control = 0
                 y_control = -moving
+        if event.key ==  K_ESCAPE:
+            pygame.quit()
 
 def border_colision():
     global x_snake, y_snake, height, width
@@ -153,14 +162,6 @@ def border_colision():
         y_snake = height 
     if y_snake > height:
         y_snake = 20
-
-def grip():
-    global x_apple, y_apple, complimento_inicial, real_score, speed
-    
-    random_apple_position()
-    complimento_inicial += 1
-    real_score += 1
-    speed = speed + 0.8
 
 def HUD():
     global background, new_real_score, hud_score, text_score, hud_font, best_hud_score, text_best_score
@@ -184,7 +185,7 @@ while True:
     for event in pygame.event.get():     
         if event.type == QUIT:
             pygame.quit()
-        control_movement()
+        on_button_pressed()
     x_snake = x_snake + x_control
     y_snake = y_snake + y_control
     lista_cabeca = []
