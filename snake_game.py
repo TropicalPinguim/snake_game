@@ -33,12 +33,12 @@ clock = pygame.time.Clock()                           # inicia o um relogio para
 
 # -------------------------------------------------- apple Parameters --------------------------------------------------#
 
-x_apple = (randint(0, 580)) // moving * moving
-y_apple = (randint(40, 580)) // moving * moving
+x_apple = (randint(0, width-moving)) // moving * moving
+y_apple = (randint(40, height-moving)) // moving * moving
 def random_apple_position():
     global x_apple, y_apple
     x_apple = (randint(0, 580)) // moving * moving
-    y_apple = (randint(40, 580)) // moving * moving
+    y_apple = (randint(40, 620)) // moving * moving
     return (x_apple, y_apple)
 
 # -------------------------------------------------- snake Parameters --------------------------------------------------#
@@ -152,22 +152,22 @@ def on_button_pressed():
             pygame.quit()
 
 def border_colision():
-    global x_snake, y_snake, height, width
+    global x_snake, y_snake, height, width, scale
 
     if x_snake > width:
-        x_snake = -20
-    if x_snake < -20:
+        x_snake = -scale
+    if x_snake < -scale:
         x_snake = width
-    if y_snake < 20:
+    if y_snake < scale:
         y_snake = height 
     if y_snake > height:
-        y_snake = 20
+        y_snake = scale
 
 def HUD():
-    global background, new_real_score, hud_score, text_score, hud_font, best_hud_score, text_best_score
+    global background, new_real_score, hud_score, text_score, hud_font, best_hud_score, text_best_score,scale
     best_best_hiscore()
     hud_font = pygame.font.SysFont('Pixelade', 22, True, False)
-    background = pygame.draw.rect(tela, BLUE, (0, 0, width, 40))
+    background = pygame.draw.rect(tela, BLUE, (0, 0, width, (0.064*height)//10*10))
 
     best_hud_score = f'BEST SCORE: {new_real_score}'
     text_best_score = hud_font.render(best_hud_score, False, YELLOW)
