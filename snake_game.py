@@ -1,72 +1,91 @@
-import pygame, CSSColors
+import pygame
 from pygame.locals import *
-from sys import exit
 from random import randint
-
-
-
 #--------------------------------------------- declared variables -----------------------------------------------------#
-
-width = 600
-height = width
-
-x_snake = int(width / 2)//20*20
-y_snake = int(height / 2)//20*20
-
-x_apple = (randint(20, 580))//20*20
-y_apple = (randint(20, 580))//20*20
-
-velocidade = 20
-x_control = velocidade
+speed = 8
+moving = 20
+scale = moving
+x_control = moving
 y_control = 0
-
-pontos = 0
-
+real_score = 0
 list_snake = []
 complimento_inicial = 4
 died = False
+#--------------------------------------------- declared variables -----------------------------------------------------#
 
-#---------------------------------------------- configuração padrão -----------------------------------------------------#
+GREEN_SNAKE = (134, 180, 96)
+RED_APPLE = (191, 91, 91)
+BLUE = (60, 141, 136)
+BLACK = (89, 87, 88)
+YELLOW = (198, 185, 85)
 
+#---------------------------------------------- screen Parameters -----------------------------------------------------#
 
+width = 600
+height = 640
 pygame.init()                                           # da inicio ao pygame.
-tela = pygame.display.set_mode((height, width))         # constroi um display é passado a largura e autura como parametro.
+tela = pygame.display.set_mode((width, height))         # constroi um display é passado a largura e autura como parametro.
 pygame.display.set_caption('Snake_Game')                # define o nome da aplicação.
+game_icon = pygame.image.load("icon.png")
+pygame.display.set_icon(game_icon)
 clock = pygame.time.Clock()                             # inicia o um relogio para dar inicio aos FPS.
-fonte = pygame.font.SysFont('arial', 30, True, False)
-fonte2 = pygame.font.SysFont('arial', 20, True, True)
 
-#---------------------------------------------- definindo funções -------------------------------------------------------#
+# -------------------------------------------------- apple Parameters --------------------------------------------------#
 
-def on_grid_apple_random():
-    global x_apple,y_apple
-    x_apple = (randint(20, 590))//20*20
-    y_apple = (randint(20, 590))//20*20
+x_apple = (randint(0, 580)) // moving * moving
+y_apple = (randint(40, 580)) // moving * moving
+def random_apple_position():
+    global x_apple, y_apple
+    x_apple = (randint(0, 580)) // moving * moving
+    y_apple = (randint(40, 580)) // moving * moving
+    return (x_apple, y_apple)
+
+# -------------------------------------------------- snake Parameters --------------------------------------------------#
+
+x_snake = int(width / 2)//moving*moving
+y_snake = int(height / 2)//moving*moving
 
 def snake_plus_plus(list_snake):
     for XeY in list_snake:
-        pygame.draw.rect(tela, CSSColors.lime_green, (XeY[0], XeY[1], 20, 20))
+        pygame.draw.rect(tela, GREEN_SNAKE, (XeY[0], XeY[1], moving, moving))
+
+def snake_on_grid():
+    global x_snake,y_snake
+
+    x_snake = int(width/2)//moving*moving
+    y_snake = int(height/2)//moving*moving
+
+def size_snake():
+    global list_snake,lista_cabeca
+
+    lista_cabeca.append(x_snake)
+    lista_cabeca.append(y_snake)
+    list_snake.append(lista_cabeca)
+
+#---------------------------------------------- definindo funções -------------------------------------------------------#
 
 def restart_game():
     global pontos,complimento_inicial,x_snake,y_snake,lista_cabeca,list_snake,x_apple,y_apple,died
     pontos = 0
     complimento_inicial = 2
-    x_snake = int(width/2)//20*20
-    y_snake = int(height/2)//20*20
+    snake_on_grid()
     lista_cabeca = []
     list_snake = []
-    on_grid_apple_random()
+    random_apple_position()
     died = False
 
 def game_over():
-    global fonte2,msn2,text_game_over,rect_text,event,died
+    global game_over_font,gameover,text_game_over,rect_text,event,died
 
-    msn2 = 'GAME OVER aperte R para reiniciar'
-    text_game_over = fonte2.render(msn2,True,CSSColors.blue)
+    game_over_font = pygame.font.SysFont('Pixelade', 48, True, False)
+    gameover = 'GAME OVER'
+    text_game_over = game_over_font.render(gameover, False, YELLOW)
     rect_text =  text_game_over.get_rect()
+    
     died = True
+
     while died:
-        tela.fill(CSSColors.black)
+        tela.fill(BLACK)
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -81,29 +100,29 @@ def game_over():
 def control_movement():
     global x_control, y_control
     if event.key == K_a:
-        if x_control == velocidade:
+        if x_control == moving:
             pass
         else:
-            x_control = -velocidade
+            x_control = -moving
             y_control = 0
     if event.key == K_d:
-        if x_control == -velocidade:
+        if x_control == -moving:
             pass
         else:
-            x_control = velocidade
+            x_control = moving
             y_control = 0
     if event.key == K_s:
-        if y_control == -velocidade:
+        if y_control == -moving:
             pass
         else:
             x_control = 0
-            y_control = velocidade
+            y_control = moving
     if event.key == K_w:
-        if y_control == velocidade:
+        if y_control == moving:
             pass
         else:
             x_control = 0
-            y_control = -velocidade
+            y_control = -moving
 
 def border_colision():
     global x_snake, y_snake, height, width
@@ -112,58 +131,55 @@ def border_colision():
         x_snake = 0
     if x_snake < 0:
         x_snake = width
-    if y_snake < 0:
+    if y_snake < 40:
         y_snake = height
     if y_snake > height:
-        y_snake = 0
+        y_snake = 40
 
 def grip():
-    global x_apple,y_apple,complimento_inicial,pontos
+    global x_apple,y_apple,complimento_inicial,real_score,speed
     
-    on_grid_apple_random()
+    random_apple_position()
     complimento_inicial += 1
-    pontos += 1
+    real_score += 1
+    speed = speed + 0.4
 
-def size_snake():
-    global list_snake,lista_cabeca
+def HUD():
+    global background, hud_score, text_score, hud_font, best_hud_score, text_best_score
 
-    lista_cabeca.append(x_snake)
-    lista_cabeca.append(y_snake)
-    list_snake.append(lista_cabeca)
+    hud_font = pygame.font.SysFont('Pixelade', 22, True, False)
+
+    background = pygame.draw.rect(tela, BLUE, (0, 0, width, 40))
+
+    best_hud_score = f'BEST SCORE: {real_score}'
+    text_best_score = hud_font.render(best_hud_score, False, YELLOW)
+    tela.blit(text_best_score, (6, 6))
+
+    hud_score = f'SCORE: {real_score}'
+    text_score = hud_font.render(hud_score, False, YELLOW)
+    tela.blit(text_score, (6, 24))
 
 while True:
-    clock.tick(20)
-    tela.fill(CSSColors.black)
-    snake = pygame.draw.rect(tela, CSSColors.lime_green, (x_snake, y_snake, 20, 20))
-    apple = pygame.draw.rect(tela, CSSColors.orange_red, (x_apple, y_apple, 20, 20))
-    
-    HUD = f'PONTOS: {pontos}'
-    texto_formatado = fonte.render(HUD, False, CSSColors.antique_white)
-
-    for event in pygame.event.get():
+    clock.tick(speed)
+    tela.fill(BLACK)
+    snake = pygame.draw.rect(tela, GREEN_SNAKE, (x_snake, y_snake, scale, scale))
+    apple = pygame.draw.rect(tela, RED_APPLE, (x_apple, y_apple, scale, scale))
+    for event in pygame.event.get():     
         if event.type == QUIT:
             pygame.quit()
-            exit()
         if event.type == KEYDOWN:
             control_movement()
-        x_snake = x_snake + x_control
-        y_snake = y_snake + y_control
-
-        if snake.colliderect(apple):
-            grip()
-
-        lista_cabeca = []
-
-        size_snake()
-
-        if list_snake.count(lista_cabeca) > 1:
-            game_over()
-
-        border_colision()
-
-        if len(list_snake) > complimento_inicial:
-            del list_snake[0]
-
-    tela.blit(texto_formatado, (10, 10))
+    x_snake = x_snake + x_control
+    y_snake = y_snake + y_control
+    lista_cabeca = []
+    size_snake()
+    if snake.colliderect(apple):
+        grip()
+    if list_snake.count(lista_cabeca) > 1:
+        game_over()
+    border_colision()
+    if len(list_snake) > complimento_inicial:
+        del list_snake[0]
     snake_plus_plus(list_snake)
+    HUD()
     pygame.display.update()
