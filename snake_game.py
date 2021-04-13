@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from random import randint
 #--------------------------------------------- declared variables -----------------------------------------------------#
+new_real_score = 0
 speed = 8
 moving = 20
 scale = moving
@@ -11,7 +12,7 @@ real_score = 0
 list_snake = []
 complimento_inicial = 4
 died = False
-#--------------------------------------------- declared variables -----------------------------------------------------#
+#---------------------------------------------------- colors ----------------------------------------------------------#
 
 GREEN_SNAKE = (134, 180, 96)
 RED_APPLE = (191, 91, 91)
@@ -23,12 +24,12 @@ YELLOW = (198, 185, 85)
 
 width = 600
 height = 640
-pygame.init()                                           # da inicio ao pygame.
-tela = pygame.display.set_mode((width, height))         # constroi um display é passado a largura e autura como parametro.
-pygame.display.set_caption('Snake_Game')                # define o nome da aplicação.
-game_icon = pygame.image.load("icon.png")
-pygame.display.set_icon(game_icon)
-clock = pygame.time.Clock()                             # inicia o um relogio para dar inicio aos FPS.
+pygame.init()                                         # da inicio ao pygame.
+tela = pygame.display.set_mode((width, height))       # constroi um display é passado a largura e autura como parametro.
+pygame.display.set_caption('Snake_Game')              # define o nome da aplicação.
+game_icon = pygame.image.load("icon.png")             # indicando o caminho do arquivo, armasenando em uma variavel.
+pygame.display.set_icon(game_icon)                    # define o icone da aplicação,
+clock = pygame.time.Clock()                           # inicia o um relogio para dar inicio aos FPS.
 
 # -------------------------------------------------- apple Parameters --------------------------------------------------#
 
@@ -74,14 +75,25 @@ def restart_game():
     random_apple_position()
     died = False
 
+def best_best_hiscore():
+    global new_real_score, real_score
+
+    if real_score > new_real_score:
+        new_real_score = real_score
+
 def game_over():
-    global game_over_font,gameover,text_game_over,rect_text,event,died
+    global game_over_font, gameover, speed, new_real_score, text_game_over, rect_text, event, died, real_score
 
     game_over_font = pygame.font.SysFont('Pixelade', 48, True, False)
     gameover = 'GAME OVER'
     text_game_over = game_over_font.render(gameover, False, YELLOW)
     rect_text =  text_game_over.get_rect()
     
+    restart_font = pygame.font.SysFont('Pixelade', 28, True, False)
+    restart = 'APERTE R PARA CONTINUAR'
+    text_restart = restart_font.render(restart, False, YELLOW)
+    rect_text2 =  text_restart.get_rect()
+
     died = True
 
     while died:
@@ -92,66 +104,71 @@ def game_over():
                 exit()
             if event.type == KEYDOWN:
                 if event.key == K_r:
+                    best_best_hiscore()
+                    real_score = 0
+                    speed = 8
                     restart_game()
-        rect_text.center = (width // 2, height // 2)
+        rect_text.center = (width // 2, (height // 2)-20)
+        rect_text2.center = (width // 2, (height // 2)+10)
         tela.blit(text_game_over,rect_text)
+        tela.blit(text_restart,rect_text2)
         pygame.display.update()
 
 def control_movement():
     global x_control, y_control
-    if event.key == K_a:
-        if x_control == moving:
-            pass
-        else:
-            x_control = -moving
-            y_control = 0
-    if event.key == K_d:
-        if x_control == -moving:
-            pass
-        else:
-            x_control = moving
-            y_control = 0
-    if event.key == K_s:
-        if y_control == -moving:
-            pass
-        else:
-            x_control = 0
-            y_control = moving
-    if event.key == K_w:
-        if y_control == moving:
-            pass
-        else:
-            x_control = 0
-            y_control = -moving
+    if event.type == KEYDOWN:
+        if event.key == K_a:
+            if x_control == moving:
+                pass
+            else:
+                x_control = -moving
+                y_control = 0
+        if event.key == K_d:
+            if x_control == -moving:
+                pass
+            else:
+                x_control = moving
+                y_control = 0
+        if event.key == K_s:
+            if y_control == -moving:
+                pass
+            else:
+                x_control = 0
+                y_control = moving
+        if event.key == K_w:
+            if y_control == moving:
+                pass
+            else:
+                x_control = 0
+                y_control = -moving
 
 def border_colision():
     global x_snake, y_snake, height, width
 
     if x_snake > width:
-        x_snake = 0
-    if x_snake < 0:
+        x_snake = -20
+    if x_snake < -20:
         x_snake = width
-    if y_snake < 40:
-        y_snake = height
+    if y_snake < 20:
+        y_snake = height 
     if y_snake > height:
-        y_snake = 40
+        y_snake = 20
 
 def grip():
-    global x_apple,y_apple,complimento_inicial,real_score,speed
+    global x_apple, y_apple, complimento_inicial, real_score, speed
     
     random_apple_position()
     complimento_inicial += 1
     real_score += 1
-    speed = speed + 0.4
+    speed = speed + 0.8
 
 def HUD():
-    global background, hud_score, text_score, hud_font, best_hud_score, text_best_score
-
+    global background, new_real_score, hud_score, text_score, hud_font, best_hud_score, text_best_score
+    best_best_hiscore()
     hud_font = pygame.font.SysFont('Pixelade', 22, True, False)
-
     background = pygame.draw.rect(tela, BLUE, (0, 0, width, 40))
 
-    best_hud_score = f'BEST SCORE: {real_score}'
+    best_hud_score = f'BEST SCORE: {new_real_score}'
     text_best_score = hud_font.render(best_hud_score, False, YELLOW)
     tela.blit(text_best_score, (6, 6))
 
@@ -167,8 +184,7 @@ while True:
     for event in pygame.event.get():     
         if event.type == QUIT:
             pygame.quit()
-        if event.type == KEYDOWN:
-            control_movement()
+        control_movement()
     x_snake = x_snake + x_control
     y_snake = y_snake + y_control
     lista_cabeca = []
